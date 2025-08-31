@@ -239,41 +239,6 @@ This command simultaneously runs:
 
 ## 🔧 Configuration
 
-### Environment Variables
-
-Key environment variables in `.env`:
-
-```env
-APP_NAME="Laravel Sail Multi-Tenant"
-APP_URL=http://localhost
-DOMAIN_NAME=codezury.test
-
-# Database Configuration
-DB_CONNECTION=mysql
-DB_HOST=mysql
-DB_PORT=3306
-DB_DATABASE=sail_mt
-DB_USERNAME=sail
-DB_PASSWORD=password
-
-# Cache & Session
-CACHE_STORE=redis
-SESSION_DRIVER=database
-REDIS_HOST=redis
-
-# Development Tools
-SAIL_XDEBUG_MODE=develop,debug
-LOG_CHANNEL=stack
-LOG_LEVEL=debug
-
-# Container Ports
-APP_PORT=80
-FORWARD_DB_PORT=3306
-FORWARD_PHPMYADMIN_PORT=8080
-FORWARD_REDIS_PORT=6379
-VITE_PORT=5173
-```
-
 ### Advanced Docker Configuration
 
 #### DNS Service Configuration
@@ -345,57 +310,6 @@ return [
 ];
 ```
 
-### Production-Ready Extensions
-
-To extend this for a production multi-tenant application:
-
-1. **🗄️ Database Strategy**
-   ```php
-   // Single database with tenant_id
-   Schema::table('users', function (Blueprint $table) {
-       $table->foreignId('tenant_id')->constrained();
-       $table->index(['tenant_id', 'email']);
-   });
-   
-   // Or separate databases per tenant
-   Config::set('database.connections.tenant', [
-       'driver' => 'mysql',
-       'database' => "tenant_{$tenantId}",
-       // ... other config
-   ]);
-   ```
-
-2. **🔧 Middleware Implementation**
-   ```php
-   class TenantMiddleware
-   {
-       public function handle(Request $request, Closure $next)
-       {
-           $tenant = $this->resolveTenant($request);
-           app()->instance('tenant', $tenant);
-           return $next($request);
-       }
-   }
-   ```
-
-3. **📁 Storage Isolation**
-   ```php
-   // Tenant-specific storage paths
-   Storage::disk('tenant')->put("tenant_{$tenantId}/file.pdf", $content);
-   ```
-
-4. **🔑 Cache Namespacing**
-   ```php
-   // Tenant-prefixed cache keys
-   Cache::put("tenant_{$tenantId}:user_{$userId}", $data);
-   ```
-
-5. **🎨 Theme/Asset Management**
-   ```php
-   // Dynamic asset loading based on tenant
-   $assetPath = "tenants/{$tenantId}/css/theme.css";
-   ```
-
 ## 📝 Service Details
 
 ### 🌐 DNS Service
@@ -431,20 +345,6 @@ To extend this for a production multi-tenant application:
 - **Pail**: Real-time log streaming
 - **Queue Worker**: Background job processing
 - **Concurrent Mode**: All services running simultaneously
-
-## 🚀 Performance & Monitoring
-
-### Built-in Monitoring Features
-- **Health Checks**: MySQL and Redis containers include health monitoring
-- **Log Aggregation**: Centralized logging via Pail
-- **Real-time Debugging**: Enhanced testing interface with request analytics
-- **Container Networking**: Optimized with custom subnet (172.20.0.0/16)
-
-### Performance Optimizations
-- **Composer**: Optimized autoloader in production
-- **Assets**: Vite 7.0 with modern build optimizations
-- **Tailwind CSS 4.0**: Latest version with improved performance
-- **Redis Caching**: Session and application cache optimization
 
 ## 🤝 Contributing
 
@@ -483,7 +383,7 @@ nslookup tenant1.codezury.test 127.0.0.1:5454
 ./vendor/bin/sail exec laravel.test nslookup tenant1.codezury.test
 
 # Test with cURL
-curl -H "Host: tenant1.codezury.test" http://localhost/info
+curl -H "Host: tenant1.codezury.test" http://codezury.test/info
 ```
 
 ### Container Issues
@@ -555,14 +455,15 @@ docker stats sail-mt-laravel.test-1
 ./vendor/bin/sail logs -f
 
 # Test subdomain
-curl -H "Host: demo.codezury.test" http://localhost/info
+curl -H "Host: demo.codezury.test" http://codezury.test/info
 ```
 
 ### Key URLs
-- 🏠 **Main App**: http://localhost
+- 🏠 **Main App**: http://codezury.test
 - 🗄️ **Database**: http://localhost:8080
-- 🧪 **API Test**: http://localhost/info
-- 🌐 **DNS Test**: http://localhost/dns-test
+- 🧪 **Testing Interface**: http://codezury.test/test 
+- 🧪 **API Test**: http://codezury.test/info
+- 🌐 **DNS Test**: http://codezury.test/dns-test
 
 ---
 
